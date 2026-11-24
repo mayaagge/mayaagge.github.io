@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3-Phase AC Induction Motor | Maya</title>
+<style>
+  :root { --paper:#eef2f6; --ink:#14213d; --muted:#4d5b75; --rule:#cfd8e3; --panel:#fff; --link:#2a55b0; }
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme: dark; --paper:#0f1626; --ink:#e8eef8; --muted:#a3b0c7; --rule:#2a3855; --panel:#172138; --link:#8fb2f5; }
+  }
+  body { margin:0; background:var(--paper); color:var(--ink); font:17px/1.55 Georgia, serif; }
+  .wrap { max-width:1000px; margin:0 auto; padding:1rem 1.25rem 3rem; }
+  a { color:var(--link); }
+  h1 { font:800 1.7rem/1.2 system-ui, sans-serif; margin:.4rem 0 .2rem; }
+  h2 { font:700 1.1rem/1.3 system-ui, sans-serif; margin:1.4rem 0 .4rem; }
+  p { margin:.3rem 0 .8rem; color:var(--muted); max-width:46rem; }
+  canvas { width:100%; height:auto; display:block; border:1px solid var(--rule); background:#f5f9ff; }
+  .bar { display:flex; gap:.6rem; flex-wrap:wrap; margin:.7rem 0; }
+  button { font:600 .95rem system-ui, sans-serif; padding:.5rem .95rem; border:2px solid var(--ink); background:var(--panel); color:var(--ink); border-radius:4px; cursor:pointer; }
+  button:hover { background:var(--ink); color:var(--paper); }
+  button:focus-visible, input:focus-visible { outline:3px solid #3b6fd4; outline-offset:2px; }
+  .sliders { display:grid; grid-template-columns:repeat(auto-fit, minmax(270px, 1fr)); gap:.6rem 1.6rem; background:var(--panel); border:1px solid var(--rule); padding:1rem; border-radius:4px; }
+  .sl label { display:flex; justify-content:space-between; font:600 .92rem system-ui, sans-serif; }
+  .sl output { font-weight:400; color:var(--muted); }
+  .sl input { width:100%; }
+  pre { background:var(--panel); border:1px solid var(--rule); padding:.8rem 1rem; border-radius:4px; font:14px/1.5 ui-monospace, Menlo, monospace; white-space:pre-wrap; margin:.6rem 0; }
+  .charts { display:grid; grid-template-columns:repeat(auto-fit, minmax(420px, 1fr)); gap:1rem; }
+  .charts h3 { font:600 .95rem system-ui, sans-serif; margin:0 0 .2rem; }
+  .key { font-size:.9rem; color:var(--muted); }
+  @media (max-width:520px) { .charts { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="../index.html">&larr; Back to portfolio</a>
+  <h1>3-phase AC induction motor</h1>
+  <p>Three AC currents, each 120&deg; apart, run through the stator coils. Their magnetic fields add up to one field that rotates. That changing field induces current in the rotor bars (Faraday's law), which creates torque, so the rotor spins up and settles a little slower than the field. The difference is called slip. Change the sliders and watch the graphs respond.</p>
+  <p>This is a browser version of my physics project, which was written in Python with VPython. The equations and the RK4 solver are the same; the view here is flat (top-down) instead of 3D.</p>
+
+  <canvas id="view" width="900" height="520" aria-label="Top-down view of a three-phase induction motor"></canvas>
+  <p class="key">Stator coils and field arrows: red = phase A, green = phase B, blue = phase C, black = total field. Rotor bars show a dot (cyan) when the induced current points toward you and a cross (magenta) when it points away.</p>
+
+  <div class="bar">
+    <button id="run">Pause</button>
+    <button id="reset">Reset</button>
+    <button id="live">Show Live Values</button>
+    <button id="consts">Show Constants</button>
+  </div>
+  <pre id="liveBox" hidden></pre>
+  <pre id="constBox" hidden></pre>
+
+  <h2>Sliders</h2>
+  <div class="sliders" id="sliders"></div>
+
+  <h2>Graphs</h2>
+  <div class="charts" id="charts"></div>
+
+  <p><a href="https://github.com/mayaagge/project-3-phase-AC-induction-motor">Original Python code on GitHub</a></p>
+</div>
+
+<script>
+"use strict";
+// Port of Test.py (VPython) from mayaagge/project-3-phase-AC-induction-motor.
+const PI = Math.PI, sin = Math.sin, cos = Math.cos, sqrt = Math.sqrt, atan2 = Math.atan2;
+
+// ---------- state (same names/defaults as the Python) ----------
+const DEF = {voltage:10.0, frequency:0.80, rotorR:0.80, load:0.015, damping:0.0030, J:0.080, radius:0.90};
+let voltage_rms, frequency, rotor_R, load_torque, damping, J, rotor_radius;
+const poles = 2, N = 20, coil_length = 0.2, mu0 = 4 * PI * 1e-7;
+const rotor_X_locked = 1.2, k_induced = 0.60, k_torque = 0.020, B_visual_scale = 900;
+const phase_impedance = 3.0, dt = 0.001, graph_window = 12.0;
+const steps_per_frame = 30;          // original: 15 steps per frame at 120 fps; this runs at 60 fps
+const PLOT_EVERY = 75;               // original: every 5th frame x 15 steps
+let t, theta, omega, running = true, stepCount = 0;
+
+function wrap_angle(a) { return atan2(sin(a), cos(a)); }
+const sign = x => x > 0 ? 1 : x < 0 ? -1 : 0;
+function update_speeds() { return [2 * PI * frequency, 4 * PI * frequency / poles]; }
+
+// ---------- physics (direct translation) ----------
+function stator_field_values(lt) {
+  const [we] = update_speeds();
+  const rmsI = voltage_rms / phase_impedance;
+  const ia = rmsI * sqrt(2) * sin(we * lt);
+  const ib = rmsI * sqrt(2) * sin(we * lt - 2 * PI / 3);
+  const ic = rmsI * sqrt(2) * sin(we * lt - 4 * PI / 3);
+  const k = mu0 * N / coil_length;
+  const B1 = {x:k * ia * cos(PI / 2),             y:k * ia * sin(PI / 2)};
+  const B2 = {x:k * ib * cos(PI / 2 + 2 * PI / 3), y:k * ib * sin(PI / 2 + 2 * PI / 3)};
+  const B3 = {x:k * ic * cos(PI / 2 + 4 * PI / 3), y:k * ic * sin(PI / 2 + 4 * PI / 3)};
+  return {ia, ib, ic, B1, B2, B3, B:{x:B1.x + B2.x + B3.x, y:B1.y + B2.y + B3.y}};
+}
+function motor_values(lw) {
+  const [we, ws] = update_speeds();
+  const slip = (ws - lw) / ws;
+  const slip_c = Math.max(-2.0, Math.min(2.0, slip));
+  const slip_abs = Math.abs(slip_c);
+  const standstill = k_induced * voltage_rms;
+  const emf_rms = standstill * slip_abs;
+  const emf_peak = emf_rms * sqrt(2);
+  const react = rotor_X_locked * slip_abs;
+  const imp = sqrt(rotor_R ** 2 + react ** 2);
+  const current = imp > 0 ? emf_rms / imp : 0;
+  const den = rotor_R ** 2 + (rotor_X_locked * slip_abs) ** 2;
+  let motor_torque;
+  if (den === 0 || slip_abs < 0.00001) motor_torque = 0;
+  else {
+    const mag = k_torque * (standstill ** 2) * rotor_R * slip_abs / (ws * den);
+    motor_torque = slip_c >= 0 ? mag : -mag;
+  }
+  const friction = damping * lw;
+  const smoothing = 0.35;
+  const load = load_torque * lw / sqrt(lw * lw + smoothing * smoothing);
+  const resisting = load + friction;
+  return {slip, emf_rms, emf_peak, current, motor_torque, resisting, net:motor_torque - resisting};
+}
+function derivatives(th, lw) { return [lw, motor_values(lw).net / J]; }
+function rk4_step(th, lw, lt, h) {
+  const [k1t, k1w] = derivatives(th, lw);
+  const [k2t, k2w] = derivatives(th + 0.5 * h * k1t, lw + 0.5 * h * k1w);
+  const [k3t, k3w] = derivatives(th + 0.5 * h * k2t, lw + 0.5 * h * k2w);
+  const [k4t, k4w] = derivatives(th + h * k3t, lw + h * k3w);
+  return [wrap_angle(th + (h / 6) * (k1t + 2 * k2t + 2 * k3t + k4t)), lw + (h / 6) * (k1w + 2 * k2w + 2 * k3w + k4w)];
+}
+
+// ---------- sliders ----------
+const SL = [
+  {id:'voltage', label:'Voltage RMS', min:2, max:20, step:0.5, fmt:v => v.toFixed(1) + ' V'},
+  {id:'frequency', label:'Frequency', min:0.25, max:2.0, step:0.05, fmt:v => v.toFixed(2) + ' Hz'},
+  {id:'rotorR', label:'Rotor resistance', min:0.2, max:2.5, step:0.05, fmt:v => v.toFixed(2) + ' ohm'},
+  {id:'load', label:'Load torque', min:0.0, max:0.06, step:0.002, fmt:v => v.toFixed(3) + ' Nm'},
+  {id:'damping', label:'Friction', min:0.0, max:0.025, step:0.0005, fmt:v => v.toFixed(4)},
+  {id:'J', label:'Rotor inertia', min:0.02, max:0.25, step:0.01, fmt:v => v.toFixed(3) + ' kg m\u00b2'},
+  {id:'radius', label:'Rotor size', min:0.55, max:1.15, step:0.05, fmt:v => v.toFixed(2)}
+];
+const inputs = {};
+function applySlider(id, v) {
+  if (id === 'voltage') voltage_rms = v; if (id === 'frequency') frequency = v; if (id === 'rotorR') rotor_R = v;
+  if (id === 'load') load_torque = v; if (id === 'damping') damping = v; if (id === 'J') J = v; if (id === 'radius') rotor_radius = v;
+}
+const box = document.getElementById('sliders');
+for (const s of SL) {
+  const d = document.createElement('div'); d.className = 'sl';
+  d.innerHTML = `<label for="s_${s.id}">${s.label}<output id="o_${s.id}"></output></label><input id="s_${s.id}" type="range" min="${s.min}" max="${s.max}" step="${s.step}">`;
+  box.appendChild(d);
+  const inp = d.querySelector('input'), out = d.querySelector('output');
+  inputs[s.id] = {inp, out, fmt:s.fmt};
+  inp.addEventListener('input', () => { const v = parseFloat(inp.value); applySlider(s.id, v); out.textContent = s.fmt(v); });
+}
+function syncSliders() { for (const s of SL) { const v = DEF[s.id]; applySlider(s.id, v); inputs[s.id].inp.value = v; inputs[s.id].out.textContent = s.fmt(v); } }
+
+// ---------- charts ----------
+const CH = [
+  {title:'Three-phase stator currents', yl:'Current (A)', series:[['#d64545'],['#2e9e6b'],['#3b6fd4']]},
+  {title:'Rotor speed vs synchronous speed', yl:'Speed (rad/s)', series:[['#f0861a'],['#000000']]},
+  {title:'Instantaneous rotor EMF', yl:'EMF (V)', series:[['#d64545']]},
+  {title:'Torque balance', yl:'Torque (Nm)', series:[['#3b6fd4'],['#d64545'],['#f0861a']]}
+];
+const chartsEl = document.getElementById('charts');
+for (const c of CH) {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `<h3>${c.title}</h3>`;
+  c.cv = document.createElement('canvas'); c.cv.width = 450; c.cv.height = 210; c.cv.setAttribute('aria-label', c.title);
+  wrap.appendChild(c.cv); chartsEl.appendChild(wrap);
+  c.data = [];
+}
+function resetCharts() { for (const c of CH) c.data = []; }
+function plot_graphs() {
+  const f = stator_field_values(t), m = motor_values(omega), [, ws] = update_speeds();
+  const inst = m.emf_peak * sin(wrap_angle(atan2(f.B.y, f.B.x) - theta));
+  CH[0].data.push([t, f.ia, f.ib, f.ic]);
+  CH[1].data.push([t, omega, ws]);
+  CH[2].data.push([t, inst]);
+  CH[3].data.push([t, m.motor_torque, m.resisting, m.net]);
+  for (const c of CH) { while (c.data.length > 2 && c.data[0][0] < t - graph_window - 1) c.data.shift(); }
+}
+function drawChart(c) {
+  const g = c.cv.getContext('2d'), w = c.cv.width, h = c.cv.height, L = 52, R = 8, T = 8, B = 28;
+  g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
+  const x1 = Math.max(graph_window, t), x0 = x1 - graph_window;
+  let lo = Infinity, hi = -Infinity;
+  for (const row of c.data) for (let k = 1; k < row.length; k++) { lo = Math.min(lo, row[k]); hi = Math.max(hi, row[k]); }
+  if (!isFinite(lo)) { lo = -1; hi = 1; }
+  if (hi - lo < 1e-9) { hi += 0.5; lo -= 0.5; }
+  const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+  const X = v => L + (v - x0) / (x1 - x0) * (w - L - R), Y = v => T + (1 - (v - lo) / (hi - lo)) * (h - T - B);
+  g.strokeStyle = '#e1e7ef'; g.lineWidth = 1; g.fillStyle = '#4d5b75'; g.font = '11px system-ui, sans-serif';
+  g.textAlign = 'right'; g.textBaseline = 'middle';
+  for (let i = 0; i <= 4; i++) { const v = lo + (hi - lo) * i / 4, y = Y(v); g.beginPath(); g.moveTo(L, y); g.lineTo(w - R, y); g.stroke(); g.fillText(Math.abs(v) < 0.01 && v !== 0 ? v.toExponential(0) : (+v.toPrecision(2)).toString(), L - 5, y); }
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  for (let i = 0; i <= 4; i++) { const v = x0 + (x1 - x0) * i / 4, x = X(v); g.beginPath(); g.moveTo(x, T); g.lineTo(x, h - B); g.stroke(); g.fillText(v.toFixed(0), x, h - B + 4); }
+  g.fillText('Time (s)', (L + w - R) / 2, h - 13);
+  g.strokeStyle = '#8895a8'; g.strokeRect(L, T, w - L - R, h - T - B);
+  g.save(); g.beginPath(); g.rect(L, T, w - L - R, h - T - B); g.clip();
+  c.series.forEach((s, k) => {
+    g.strokeStyle = s[0]; g.lineWidth = 1.8; g.beginPath();
+    c.data.forEach((row, i) => { const x = X(row[0]), y = Y(row[k + 1]); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+    g.stroke();
+  });
+  g.restore();
+}
+
+// ---------- motor drawing (top-down) ----------
+const cv = document.getElementById('view'), ctx = cv.getContext('2d');
+const SC = 100, CX = 450, CY = 270;                     // 100 px per unit, origin near centre
+const P = (x, y) => [CX + x * SC, CY - y * SC];
+const COLS = ['#d64545', '#2e9e6b', '#3b6fd4'];
+function line(pts, color, w) { ctx.strokeStyle = color; ctx.lineWidth = w; ctx.beginPath(); pts.forEach((p, i) => { const q = P(p[0], p[1]); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke(); }
+function arrow(x, y, dx, dy, color, w) {
+  const len = Math.hypot(dx, dy); if (len < 0.01) return;
+  const a = P(x, y), b = P(x + dx, y + dy), ang = atan2(b[1] - a[1], b[0] - a[0]), hd = 5 + w * 1.5;
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = w;
+  ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(b[0], b[1]); ctx.lineTo(b[0] - hd * cos(ang - 0.4), b[1] - hd * sin(ang - 0.4)); ctx.lineTo(b[0] - hd * cos(ang + 0.4), b[1] - hd * sin(ang + 0.4)); ctx.closePath(); ctx.fill();
+}
+function text(s, x, y, size, color) { const p = P(x, y); ctx.font = size + 'px system-ui, sans-serif'; ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s, p[0], p[1]); }
+
+function drawMotor() {
+  ctx.fillStyle = '#f5f9ff'; ctx.fillRect(0, 0, cv.width, cv.height);
+  const f = stator_field_values(t), m = motor_values(omega);
+  // stator ring
+  ctx.strokeStyle = '#8c8c8c'; ctx.lineWidth = 0.1 * SC; ctx.beginPath(); ctx.arc(CX, CY, 2 * SC, 0, 2 * PI); ctx.stroke();
+  // coils, magnets, labels
+  const names = ['A', 'B', 'C'];
+  for (let i = 0; i < 3; i++) {
+    const tN = 5 * PI / 12 + i * PI / 3, tS = tN + PI, off = PI * 0.08;
+    for (const th of [tN, tS]) {
+      ctx.strokeStyle = '#b8b8b8'; ctx.lineWidth = 0.5 * SC; ctx.beginPath(); ctx.arc(CX, CY, 1.8 * SC, -(th + PI / 6), -th); ctx.stroke();
+      const o = [1.3 * cos(th + off), 1.3 * sin(th + off)], ax = [cos(th + PI / 12), sin(th + PI / 12)], perp = [-ax[1], ax[0]], r = 0.55;
+      // coil seen from above: a rectangle of width 2r and length coil_length, with turn lines
+      const c0 = [o[0] - perp[0] * r, o[1] - perp[1] * r], c1 = [o[0] + perp[0] * r, o[1] + perp[1] * r];
+      const c2 = [c1[0] + ax[0] * coil_length, c1[1] + ax[1] * coil_length], c3 = [c0[0] + ax[0] * coil_length, c0[1] + ax[1] * coil_length];
+      ctx.fillStyle = COLS[i] + '22'; ctx.beginPath(); [c0, c1, c2, c3].forEach((q, k) => { const p = P(q[0], q[1]); k ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }); ctx.closePath(); ctx.fill();
+      for (let k = 0; k <= N; k++) { const u = k / N * coil_length; line([[c0[0] + ax[0] * u, c0[1] + ax[1] * u], [c1[0] + ax[0] * u, c1[1] + ax[1] * u]], COLS[i], 1.5); }
+    }
+    text('Phase ' + names[i], 2.38 * cos(tN + PI / 12), 2.38 * sin(tN + PI / 12), 12, COLS[i]);
+  }
+  // power source and wires
+  ctx.fillStyle = '#800080'; const bp = P(-3.05 - 0.475, 1.75 + 0.25); ctx.fillRect(bp[0], bp[1], 0.95 * SC, 0.5 * SC);
+  text('3-phase AC', -3.05, 2.18, 12, '#000'); text('~', -2.68, 1.75, 18, '#fff'); text('~', -3.42, 1.75, 18, '#fff');
+  line([[-2.65, 1.75], [-1.70, 1.15], [-1.18, 0.72]], COLS[0], 2.5);
+  line([[-3.05, 1.50], [-1.90, 0.0], [-1.18, 0.0]], COLS[1], 2.5);
+  line([[-3.45, 1.75], [-1.90, -1.15], [-1.18, -0.72]], COLS[2], 2.5);
+  // rotor end ring and bars
+  const R = rotor_radius, sc = B_visual_scale;
+  ctx.strokeStyle = '#f0861a'; ctx.lineWidth = 0.06 * SC; ctx.beginPath(); ctx.arc(CX, CY, R * SC, 0, 2 * PI); ctx.stroke();
+  const fieldAngle = atan2(f.B.y, f.B.x), cur = 0.48 * Math.min(m.current / 5.0, 1.25);
+  for (let i = 0; i < 10; i++) {
+    const ang = i * (2 * PI / 10) + PI / 2 + theta, p = P(R * cos(ang), R * sin(ang));
+    const dir = sin(wrap_angle(fieldAngle - ang)), mag = Math.abs(cur * dir), rr = 4 + mag * SC * 0.16;
+    ctx.fillStyle = '#f0861a'; ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, 2 * PI); ctx.fill();
+    const col = dir >= 0 ? '#00b7c7' : '#d11fb5';
+    ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
+    if (mag > 0.01) {
+      ctx.beginPath(); ctx.arc(p[0], p[1], rr, 0, 2 * PI); ctx.stroke();
+      if (dir >= 0) { ctx.beginPath(); ctx.arc(p[0], p[1], 2.5, 0, 2 * PI); ctx.fill(); }
+      else { const d = rr * 0.6; ctx.beginPath(); ctx.moveTo(p[0] - d, p[1] - d); ctx.lineTo(p[0] + d, p[1] + d); ctx.moveTo(p[0] + d, p[1] - d); ctx.lineTo(p[0] - d, p[1] + d); ctx.stroke(); }
+    }
+  }
+  // spoke shows rotor angle
+  line([[0, 0], [R * cos(theta), R * sin(theta)]], '#333', 2);
+  // field arrows
+  arrow(0, 0, f.B1.x * sc, f.B1.y * sc, COLS[0], 2.5);
+  arrow(0, 0, f.B2.x * sc, f.B2.y * sc, COLS[1], 2.5);
+  arrow(0, 0, f.B3.x * sc, f.B3.y * sc, COLS[2], 2.5);
+  arrow(0, 0, f.B.x * sc, f.B.y * sc, '#000', 5);
+  const bm = Math.hypot(f.B.x, f.B.y), bh = bm > 0 ? [f.B.x / bm, f.B.y / bm] : [1, 0], dp = P(1.45 * bh[0], 1.45 * bh[1]);
+  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(dp[0], dp[1], 7, 0, 2 * PI); ctx.fill();
+  ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(CX, CY, 6, 0, 2 * PI); ctx.fill();
+}
+
+// ---------- readouts ----------
+function liveString() {
+  const [, ws] = update_speeds(), f = stator_field_values(t), m = motor_values(omega);
+  const inst = m.emf_peak * sin(wrap_angle(atan2(f.B.y, f.B.x) - theta));
+  let status = running ? 'Running' : 'Paused';
+  if (Math.abs(omega) < 0.02 && Math.abs(m.motor_torque) <= load_torque) status += ' / stalled by load';
+  const r = (v, d) => v.toFixed(d);
+  return 'Live Values\n' +
+    'Status: ' + status + '\n' +
+    'Rotor speed: ' + r(omega, 2) + ' rad/s\n' +
+    'Synchronous speed: ' + r(ws, 2) + ' rad/s\n' +
+    'Slip: ' + r(m.slip * 100, 2) + '%\n' +
+    'Rotor EMF: ' + r(m.emf_rms, 2) + ' V RMS\n' +
+    'Instant EMF: ' + r(inst, 2) + ' V\n' +
+    'Rotor current: ' + r(m.current, 2) + ' A RMS\n' +
+    'Motor torque: ' + r(m.motor_torque, 3) + ' Nm\n' +
+    'Resisting torque: ' + r(m.resisting, 3) + ' Nm\n' +
+    'Net torque: ' + r(m.net, 3) + ' Nm';
+}
+function constString() {
+  const [, ws] = update_speeds();
+  return 'Constants\nPoles: ' + poles + '\nTurns per stator coil: ' + N + '\nCoil length: ' + coil_length + ' m\n' +
+    'Phase impedance: ' + phase_impedance + ' ohm\nLocked-rotor reactance: ' + rotor_X_locked + ' ohm\n' +
+    'Time step: ' + dt + ' s\nSynchronous speed now: ' + ws.toFixed(2) + ' rad/s';
+}
+const liveBox = document.getElementById('liveBox'), constBox = document.getElementById('constBox');
+const btn = id => document.getElementById(id);
+btn('run').onclick = () => { running = !running; btn('run').textContent = running ? 'Pause' : 'Run'; };
+btn('live').onclick = () => { liveBox.hidden = !liveBox.hidden; btn('live').textContent = liveBox.hidden ? 'Show Live Values' : 'Hide Live Values'; };
+btn('consts').onclick = () => { constBox.hidden = !constBox.hidden; btn('consts').textContent = constBox.hidden ? 'Show Constants' : 'Hide Constants'; if (!constBox.hidden) constBox.textContent = constString(); };
+btn('reset').onclick = reset;
+
+function reset() {
+  running = true; btn('run').textContent = 'Pause';
+  t = 0; theta = 0.2; omega = 0; stepCount = 0;
+  syncSliders(); resetCharts(); plot_graphs();
+  liveBox.hidden = true; constBox.hidden = true;
+  btn('live').textContent = 'Show Live Values'; btn('consts').textContent = 'Show Constants';
+}
+
+// ---------- loop ----------
+let last = 0, acc = 0;
+function loop(now) {
+  acc += Math.min(100, now - last); last = now;
+  while (acc >= 1000 / 60) {
+    acc -= 1000 / 60;
+    if (running) for (let i = 0; i < steps_per_frame; i++) {
+      [theta, omega] = rk4_step(theta, omega, t, dt); t += dt;
+      if (++stepCount % PLOT_EVERY === 0) plot_graphs();
+    }
+  }
+  drawMotor();
+  for (const c of CH) drawChart(c);
+  if (!liveBox.hidden) liveBox.textContent = liveString();
+  if (!constBox.hidden) constBox.textContent = constString();
+  requestAnimationFrame(loop);
+}
+reset();
+requestAnimationFrame(n => { last = n; loop(n); });
+</script>
+</body>
+</html>

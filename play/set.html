@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SET | Maya</title>
+<style>
+  :root { --paper:#eef2f6; --ink:#14213d; --muted:#4d5b75; --rule:#cfd8e3; --panel:#fff; --link:#2a55b0; }
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme: dark; --paper:#0f1626; --ink:#e8eef8; --muted:#a3b0c7; --rule:#2a3855; --panel:#172138; --link:#8fb2f5; }
+  }
+  body { margin:0; background:var(--paper); color:var(--ink); font:17px/1.55 Georgia, serif; }
+  .wrap { max-width:960px; margin:0 auto; padding:1rem 1.25rem 3rem; }
+  a { color:var(--link); }
+  h1 { font:800 1.7rem/1.2 system-ui, sans-serif; margin:.4rem 0 .2rem; }
+  p { margin:.3rem 0 .8rem; color:var(--muted); max-width:46rem; }
+  .game { display:grid; grid-template-columns:minmax(0, 620px) 200px; gap:1.2rem; align-items:start; margin-top:.8rem; }
+  canvas { width:100%; height:auto; display:block; background:#000; border:1px solid var(--rule); touch-action:manipulation; cursor:pointer; }
+  .side { display:flex; flex-direction:column; gap:.7rem; }
+  .mon { background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:.5rem .8rem; font:600 .9rem system-ui, sans-serif; color:var(--muted); }
+  .mon b { display:block; font-size:1.9rem; color:var(--ink); line-height:1.15; }
+  button { font:600 1rem system-ui, sans-serif; padding:.65rem 1rem; border:2px solid var(--ink); background:var(--ink); color:var(--paper); border-radius:4px; cursor:pointer; }
+  button:hover { background:#3b6fd4; border-color:#3b6fd4; color:#fff; }
+  button:focus-visible { outline:3px solid #3b6fd4; outline-offset:2px; }
+  .rules { background:var(--panel); border:1px solid var(--rule); padding:.8rem 1rem; border-radius:4px; font-size:.97rem; margin-top:1rem; }
+  .rules li { margin:.2rem 0; }
+  @media (max-width:720px) { .game { grid-template-columns:1fr; } .side { flex-direction:row; flex-wrap:wrap; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="../index.html">&larr; Back to portfolio</a>
+  <h1>SET</h1>
+  <p>A browser version of the card game I built in NetLogo with Sofia Pisareva. Find three cards that make a SET before the timer runs out. Five correct sets wins.</p>
+
+  <div class="game">
+    <canvas id="c" width="820" height="820" aria-label="SET game board, a 3 by 3 grid of cards"></canvas>
+    <div class="side">
+      <button id="play">Play</button>
+      <div class="mon">Score<b id="score">0</b></div>
+      <div class="mon">Time left<b id="time">15</b></div>
+    </div>
+  </div>
+
+  <div class="rules">
+    <strong>How to play</strong>
+    <ul>
+      <li>Each card has a shape (diamond, squiggle, oval), a color (red, blue, yellow), and a number (1, 2, 3).</li>
+      <li>Click three cards. They make a SET if, for each of the three features, the cards are either all the same or all different.</li>
+      <li>You have 15 seconds per round. A wrong guess or running out of time loses the game. Reach 5 points to win.</li>
+      <li>If a deal has no SET at all, the game says "No SET" and deals again.</li>
+    </ul>
+  </div>
+  <p><a href="https://github.com/mayaagge/final-set-group">Original NetLogo code on GitHub</a></p>
+</div>
+
+<script>
+"use strict";
+// Port of project.nlogo from mayaagge/final-set-group.
+// Same rules: 3x3 board, shapes diamond/squiggle/oval, colors red/blue/yellow, 1-3 shapes per card,
+// 15 s per round, 5 points to win, a wrong set or a timeout loses.
+// Additions: selected cards are highlighted, and a board with no SET is detected and redealt
+// (the NetLogo file has that check commented out, but its Info tab describes it).
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const PX = 20, HALF = 20.5;                     // 41 x 41 patches at 20 px each
+const X = x => (x + HALF) * PX, Y = y => (HALF - y) * PX;   // patch coords -> canvas px
+const CENTERS = [[-14,12],[0,12],[14,12],[-14,0],[0,0],[14,0],[-14,-12],[0,-12],[14,-12]];
+const REGION_X = [[-18,-10],[-4,4],[10,18]];
+const REGION_Y = [[7,17],[-5,5],[-17,-7]];
+const COLORS = ['#e0382d', '#2b5fd9', '#e3b81b'];   // red, blue, yellow
+const SHAPES = ['diamond', 'squiggle', 'oval'];
+const POLY = {   // from the NetLogo shape editor, 300 x 300 box, y down
+  diamond:  [[150,0],[60,150],[150,300],[240,150]],
+  oval:     [[195,15],[105,15],[75,45],[75,255],[105,285],[195,285],[225,255],[225,45]],
+  squiggle: [[105,15],[165,135],[75,180],[195,285],[105,180],[210,135]]
+};
+
+let cards = [], picks = [], score = 0, timeLeft = 15, state = 'idle', message = '', roundStart = 0, msgUntil = 0, msgThen = null;
+
+// ---- rules ----
+const allSame = (a, b, c) => a === b && b === c;
+const allDiff = (a, b, c) => a !== b && b !== c && a !== c;
+const ok = (a, b, c) => allSame(a, b, c) || allDiff(a, b, c);
+function isSet(x, y, z) { return ok(x.shape, y.shape, z.shape) && ok(x.color, y.color, z.color) && ok(x.number, y.number, z.number); }
+function hasSet(cs) {
+  for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) for (let k = j + 1; k < cs.length; k++) if (isSet(cs[i], cs[j], cs[k])) return true;
+  return false;
+}
+const rnd = n => Math.floor(Math.random() * n);
+function deal() {
+  cards = Array.from({length:9}, () => ({shape:rnd(3), color:rnd(3), number:rnd(3) + 1}));
+  picks = [];
+}
+
+// ---- drawing ----
+function drawShape(shape, cx, cy, col) {
+  const size = 4 * PX, s = size / 300;
+  ctx.fillStyle = col; ctx.beginPath();
+  POLY[SHAPES[shape]].forEach((p, i) => {
+    const x = cx + (p[0] - 150) * s, y = cy + (p[1] - 150) * s;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  });
+  ctx.closePath(); ctx.fill();
+}
+function text(t, x, y, size, color) { ctx.font = '600 ' + size + 'px system-ui, sans-serif'; ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y); }
+function draw() {
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
+  if (state === 'idle') { text('Press Play to start', cv.width / 2, cv.height / 2, 34, '#fff'); return; }
+  if (state === 'intro') {
+    text('Welcome to the game of SET!', cv.width / 2, cv.height / 2 - 60, 32, '#fff');
+    text('Each round you will have', cv.width / 2, cv.height / 2, 28, '#fff');
+    text('15 seconds to find a SET', cv.width / 2, cv.height / 2 + 45, 28, '#fff'); return;
+  }
+  if (state === 'win' || state === 'lose') {
+    text(state === 'win' ? 'You Win' : 'You Lose', cv.width / 2, cv.height / 2 - 20, 56, '#fff');
+    text('Press Play to try again', cv.width / 2, cv.height / 2 + 50, 24, '#9aa7bd'); return;
+  }
+  cards.forEach((c, i) => {
+    const [cx, cy] = CENTERS[i], rx = REGION_X[i % 3], ry = REGION_Y[Math.floor(i / 3)];
+    ctx.fillStyle = '#fff'; ctx.fillRect(X(rx[0] - 0.5), Y(ry[1] + 0.5), (rx[1] - rx[0] + 1) * PX, (ry[1] - ry[0] + 1) * PX);
+    for (let k = 0; k < c.number; k++) drawShape(c.shape, X(cx + (k - (c.number - 1) / 2) * 2), Y(cy), COLORS[c.color]);
+    if (picks.includes(i)) { ctx.strokeStyle = '#2bd1c8'; ctx.lineWidth = 6; ctx.strokeRect(X(rx[0] - 0.5) + 3, Y(ry[1] + 0.5) + 3, (rx[1] - rx[0] + 1) * PX - 6, (ry[1] - ry[0] + 1) * PX - 6); }
+  });
+  if (message) text(message, cv.width / 2, 22, 28, '#fff');
+}
+
+// ---- game flow ----
+const scoreEl = document.getElementById('score'), timeEl = document.getElementById('time');
+function newRound() {
+  deal();
+  if (!hasSet(cards)) {                     // no SET possible: say so, then deal again (score is kept)
+    message = 'No SET'; state = 'nosets'; msgUntil = performance.now() + 2000; msgThen = newRound; return;
+  }
+  message = ''; state = 'play'; roundStart = performance.now();
+}
+function end(result) { state = result; if (result === 'lose') score = 0; scoreEl.textContent = score; timeEl.textContent = '0'; }
+function startGame() {
+  score = 0; scoreEl.textContent = 0; timeEl.textContent = 15; state = 'intro';
+  msgUntil = performance.now() + 3000; msgThen = newRound;
+}
+document.getElementById('play').onclick = startGame;
+
+function cardAt(mx, my) {
+  for (let i = 0; i < 9; i++) {
+    const rx = REGION_X[i % 3], ry = REGION_Y[Math.floor(i / 3)];
+    if (mx >= rx[0] - 0.5 && mx <= rx[1] + 0.5 && my >= ry[0] - 0.5 && my <= ry[1] + 0.5) return i;
+  }
+  return -1;
+}
+function click(e) {
+  if (state !== 'play') return;
+  const r = cv.getBoundingClientRect(), p = e.changedTouches ? e.changedTouches[0] : e;
+  const px = (p.clientX - r.left) * cv.width / r.width, py = (p.clientY - r.top) * cv.height / r.height;
+  const i = cardAt(px / PX - HALF, HALF - py / PX);
+  if (i < 0) return;
+  if (picks.includes(i)) { picks = picks.filter(k => k !== i); return; }
+  picks.push(i);
+  if (picks.length === 3) {
+    if (isSet(cards[picks[0]], cards[picks[1]], cards[picks[2]])) {
+      score++; scoreEl.textContent = score;
+      if (score >= 5) end('win'); else newRound();
+    } else end('lose');
+  }
+}
+cv.addEventListener('click', click);
+
+function loop(now) {
+  if ((state === 'intro' || state === 'nosets') && now >= msgUntil) { const f = msgThen; msgThen = null; f && f(); }
+  if (state === 'play') {
+    timeLeft = Math.max(0, 15 - (now - roundStart) / 1000);
+    timeEl.textContent = Math.ceil(timeLeft);
+    if (timeLeft <= 0) end('lose');
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

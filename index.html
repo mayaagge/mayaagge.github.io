@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maya | Projects in physics, games, and finance</title>
+<meta name="description" content="Portfolio of Maya: a playable 3-phase induction motor simulation, two playable games, and a finance dashboard in progress.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef2f6;
+    --panel: #ffffff;
+    --ink: #14213d;
+    --muted: #4d5b75;
+    --rule: #cfd8e3;
+    --phase-a: #d64545;
+    --phase-b: #2e9e6b;
+    --phase-c: #3b6fd4;
+    --link: #2a55b0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --paper: #0f1626;
+      --panel: #172138;
+      --ink: #e8eef8;
+      --muted: #a3b0c7;
+      --rule: #2a3855;
+      --phase-a: #ef6a6a;
+      --phase-b: #4cc28b;
+      --phase-c: #6f9bf0;
+      --link: #8fb2f5;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 1.125rem;
+    line-height: 1.6;
+  }
+  a { color: var(--link); text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--phase-c); outline-offset: 3px; border-radius: 2px; }
+  h1, h2, h3, nav, .tag, .btn { font-family: "Bricolage Grotesque", system-ui, sans-serif; }
+  .wrap { max-width: 68rem; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* nav */
+  header.top { border-bottom: 1px solid var(--rule); background: var(--paper); position: sticky; top: 0; z-index: 5; }
+  header.top .wrap { display: flex; justify-content: space-between; align-items: center; padding-top: .8rem; padding-bottom: .8rem; gap: 1rem; flex-wrap: wrap; }
+  .brand { font-weight: 800; font-size: 1.15rem; color: var(--ink); text-decoration: none; }
+  nav { display: flex; gap: 1.4rem; flex-wrap: wrap; }
+  nav a { color: var(--muted); text-decoration: none; font-weight: 600; font-size: .98rem; }
+  nav a:hover { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; }
+
+  /* hero */
+  .hero { padding: 4rem 0 2.5rem; }
+  .hero h1 { font-size: clamp(2.6rem, 7vw, 5rem); line-height: 1.02; margin: 0 0 1.2rem; font-weight: 800; letter-spacing: -.02em; max-width: 14ch; }
+  .hero p.lede { max-width: 38rem; font-size: 1.3rem; color: var(--muted); margin: 0 0 1.6rem; }
+  .btns { display: flex; gap: .8rem; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: .65rem 1.1rem; border: 2px solid var(--ink); color: var(--ink); text-decoration: none; font-weight: 600; font-size: .98rem; border-radius: 4px; }
+  .btn.solid { background: var(--ink); color: var(--paper); }
+  .btn:hover { background: var(--phase-c); border-color: var(--phase-c); color: #fff; }
+  .waves { width: 100%; height: 150px; display: block; margin-top: 2.5rem; }
+  .waves-cap { font-size: .9rem; color: var(--muted); margin: .3rem 0 0; font-style: italic; }
+
+  /* sections */
+  section { padding: 3rem 0; border-top: 1px solid var(--rule); }
+  section h2 { font-size: 2rem; margin: 0 0 .4rem; letter-spacing: -.01em; }
+  .sub { color: var(--muted); margin: 0 0 2rem; max-width: 40rem; }
+
+  /* project entries */
+  .project { display: grid; grid-template-columns: 11rem 1fr; gap: 1.5rem 2.5rem; padding: 2rem 0; border-top: 1px solid var(--rule); }
+  .project:first-of-type { border-top: 0; padding-top: 0; }
+  .meta .tag { display: inline-block; font-size: .85rem; font-weight: 600; padding: .15rem .55rem; border-radius: 3px; margin: 0 .3rem .4rem 0; background: var(--panel); border: 1px solid var(--rule); color: var(--muted); }
+  .meta .status { display: block; font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: .9rem; margin-bottom: .7rem; }
+  .meta .status::before { content: ""; display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; margin-right: .45rem; background: var(--phase-b); }
+  .meta .status.building::before { background: var(--phase-a); }
+  .project h3 { font-size: 1.55rem; margin: 0 0 .5rem; letter-spacing: -.01em; }
+  .project p { margin: 0 0 .9rem; max-width: 40rem; }
+  .project dl { margin: 1rem 0; max-width: 40rem; }
+  .project dt { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: .98rem; margin-top: .8rem; }
+  .project dd { margin: .1rem 0 0; color: var(--muted); }
+  .links a { margin-right: 1.2rem; font-weight: 500; }
+  .feature { background: var(--panel); border: 1px solid var(--rule); border-left: 6px solid var(--phase-a); padding: 1.6rem; border-radius: 4px; }
+
+  /* games */
+  .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.5rem; }
+  .game { background: var(--panel); border: 1px solid var(--rule); padding: 1.4rem; border-radius: 4px; }
+  .game:nth-child(1) { border-top: 5px solid var(--phase-b); }
+  .game:nth-child(2) { border-top: 5px solid var(--phase-c); }
+  .game h3 { margin: 0 0 .4rem; font-size: 1.3rem; }
+  .game p { margin: 0 0 .8rem; color: var(--muted); }
+  .game a.play { display:inline-block; margin:0 0 .5rem; font-family:"Bricolage Grotesque", system-ui, sans-serif; font-weight:600; }
+
+  /* about */
+  .about { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+  .about p { margin: 0 0 1rem; max-width: 36rem; }
+  .about ul { padding-left: 1.1rem; margin: 0; }
+  .about li { margin-bottom: .4rem; }
+
+  footer { border-top: 1px solid var(--rule); padding: 2rem 0 3rem; color: var(--muted); font-size: .98rem; }
+
+  @media (max-width: 720px) {
+    .project, .about { grid-template-columns: 1fr; gap: .5rem; }
+    .hero { padding-top: 2.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">Maya</a>
+    <nav aria-label="Main">
+      <a href="#projects">Projects</a>
+      <a href="#games">Games</a>
+      <a href="#about">About</a>
+      <a href="https://github.com/mayaagge">GitHub</a>
+      <a href="YOUR_CV.pdf">CV</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap">
+
+    <div class="hero">
+      <h1>I build things that make data and physics easier to see.</h1>
+      <p class="lede">A 3-phase motor and two games you can run right here in your browser, plus a finance dashboard I'm building now. Each project says what was hard and what I'd change.</p>
+      <div class="btns">
+        <a class="btn solid" href="#projects">See my projects</a>
+        <a class="btn" href="https://github.com/mayaagge">View GitHub</a>
+      </div>
+
+      <svg class="waves" id="waves" viewBox="0 0 1000 150" preserveAspectRatio="none" role="img" aria-label="Three sine waves offset by 120 degrees, the three phases of an AC induction motor">
+        <path id="wa" fill="none" stroke="var(--phase-a)" stroke-width="3"/>
+        <path id="wb" fill="none" stroke="var(--phase-b)" stroke-width="3"/>
+        <path id="wc" fill="none" stroke="var(--phase-c)" stroke-width="3"/>
+      </svg>
+      <p class="waves-cap">Three AC currents, 120 degrees apart. Together they make the stator's magnetic field rotate, which is what my motor simulation models.</p>
+    </div>
+
+    <section id="projects">
+      <h2>Projects</h2>
+      <p class="sub">Ordered by what I'd most like you to look at first.</p>
+
+      <!-- FINANCE -->
+      <article class="project">
+        <div class="meta">
+          <span class="status building">In progress</span>
+          <span class="tag">Python</span><span class="tag">yfinance</span><span class="tag">Data viz</span>
+        </div>
+        <div class="feature">
+          <h3>Finance dashboard (in progress)</h3>
+          <p>A self-hosted dashboard built around one question, tested with real market data. The first version tracks a weighted tech-sector portfolio and follows NVIDIA's story against the rest of the group, with prices pulled from Yahoo Finance using yfinance. I'm building it over the next two weeks.</p>
+          <dl>
+            <dt>Question I'm asking</dt>
+            <dd>[Finalize this sentence once you pick it. Example: how much of a tech portfolio's return came from NVIDIA alone?]</dd>
+            <dt>What's hard about it</dt>
+            <dd>Lining up price histories, choosing weights I can defend, and presenting the result so someone outside finance understands it in a minute.</dd>
+            <dt>What's next</dt>
+            <dd>Publish the dashboard here and write up what the data showed, including what it could not show.</dd>
+          </dl>
+          <p class="links">Code and live dashboard links will appear here when it's published.</p>
+        </div>
+      </article>
+
+      <!-- MOTOR -->
+      <article class="project">
+        <div class="meta">
+          <span class="status">Complete</span>
+          <span class="tag">Python</span><span class="tag">VPython</span><span class="tag">Physics</span>
+        </div>
+        <div>
+          <h3>3-phase AC induction motor simulation</h3>
+          <p>An interactive model of a stator and squirrel-cage rotor. Sliders change voltage, frequency, rotor resistance, load torque, inertia, damping, and rotor size, and live graphs show currents, rotor speed, EMF, and torque as the motor spins up.</p>
+          <dl>
+            <dt>Why it was hard</dt>
+            <dd>The physics chains together: three phase currents make a rotating field, the field induces current in the rotor (Faraday's law), and that current produces torque. Getting slip and net torque to settle correctly took careful time-stepping.</dd>
+            <dt>What I did</dt>
+            <dd>Built the simulation for a physics project, with a 3D view, camera controls, pause and reset, and four live graphs.</dd>
+            <dt>What I'd improve</dt>
+            <dd>Check the simulated torque and slip against a real motor's datasheet, and move the simulation into the browser so anyone can run it without installing Python.</dd>
+          </dl>
+          <p class="links"><a href="play/motor.html"><strong>Run it in your browser</strong></a> <a href="https://github.com/mayaagge/project-3-phase-AC-induction-motor">Code and README</a></p>
+        </div>
+      </article>
+    </section>
+
+    <section id="games">
+      <h2>Games</h2>
+      <p class="sub">Two team projects from computer science courses, both playable here. I translated them to JavaScript so they run in the browser; the original code is linked on each card.</p>
+      <div class="game-grid">
+        <article class="game">
+          <h3>Set</h3>
+          <p>The pattern-matching card game, written in NetLogo with Sofia Pisareva. Find three cards where each feature is all the same or all different. Five correct sets wins, and you get 15 seconds per round.</p>
+          <a class="play" href="play/set.html">Play in your browser</a><br>
+          <a href="https://github.com/mayaagge/final-set-group">Original NetLogo code</a>
+        </article>
+        <article class="game">
+          <img src="play/assets/bloons/STARTSCREEN.png" alt="Bloons TD title screen" width="336" height="224" style="width:100%;height:auto;margin:0 0 .7rem;border-radius:3px">
+          <h3>Bloons Tower Defense</h3>
+          <p>A tower defense game built in Processing by a team of three, with five monkey types, five balloon types, and ten rounds. The repo has a design document, a UML diagram, and 233 commits.</p>
+          <a class="play" href="play/bloons.html">Play in your browser</a><br>
+          <a href="https://github.com/mayaagge/final-bloons-tower-defense-group/blob/main/Design%20Doc.pdf">Design document</a><br>
+          <a href="https://github.com/mayaagge/final-bloons-tower-defense-group">Original Processing code</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="about">
+      <h2>About</h2>
+      <div class="about">
+        <div>
+          <p>[Two or three sentences: who you are, where you study, and what you're curious about. Mention that you like picking a question, forming a hypothesis, and letting the data answer.]</p>
+          <p><a href="YOUR_CV.pdf">Download my CV</a></p>
+        </div>
+        <div>
+          <p>Languages and tools</p>
+          <ul>
+            <li>Python, Racket, NetLogo, HTML/CSS</li>
+            <li>Processing, yfinance, Git and GitHub</li>
+            <li>Claude, for building and debugging</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a href="https://github.com/mayaagge">github.com/mayaagge</a> &nbsp;|&nbsp; [your email] &nbsp;|&nbsp; [LinkedIn or Substack link]
+  </div>
+</footer>
+
+<script>
+  // Three-phase waves in the hero. One slow drift, off when reduced motion is requested.
+  (function () {
+    var paths = [document.getElementById('wa'), document.getElementById('wb'), document.getElementById('wc')];
+    var offsets = [0, 2 * Math.PI / 3, 4 * Math.PI / 3];
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function draw(t) {
+      for (var k = 0; k < 3; k++) {
+        var d = '';
+        for (var x = 0; x <= 1000; x += 8) {
+          var y = 75 - 55 * Math.sin(x / 1000 * 4 * Math.PI - offsets[k] - t);
+          d += (x === 0 ? 'M' : 'L') + x + ' ' + y.toFixed(1);
+        }
+        paths[k].setAttribute('d', d);
+      }
+    }
+    draw(0);
+    if (reduce) return;
+    var start = performance.now();
+    (function loop(now) {
+      draw((now - start) / 1500);
+      requestAnimationFrame(loop);
+    })(start);
+  })();
+</script>
+</body>
+</html>
