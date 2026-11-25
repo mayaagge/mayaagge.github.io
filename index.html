@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Maya | Projects in finance, physics, and games</title>
-<meta name="description" content="Portfolio of Maya: a playable 3-phase induction motor simulation, two playable games, and a finance dashboard in progress.">
+<title>Maya Agge | Projects in finance, modeling, physics and games</title>
+<meta name="description" content="Portfolio of Maya Agge: One Trade, a market game on live prices with pre-registered research; math modeling and research papers; a 3-phase induction motor simulation; and two browser games.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
@@ -65,8 +65,6 @@
   .btn { display: inline-block; padding: .65rem 1.1rem; border: 2px solid var(--ink); color: var(--ink); text-decoration: none; font-weight: 600; font-size: .98rem; border-radius: 4px; }
   .btn.solid { background: var(--ink); color: var(--paper); }
   .btn:hover { background: var(--phase-c); border-color: var(--phase-c); color: #fff; }
-  .waves { width: 100%; height: 150px; display: block; margin-top: 2.5rem; }
-  .waves-cap { font-size: .9rem; color: var(--muted); margin: .3rem 0 0; font-style: italic; }
 
   /* sections */
   section { padding: 3rem 0; border-top: 1px solid var(--rule); }
@@ -109,6 +107,29 @@
     .project, .about { grid-template-columns: 1fr; gap: .5rem; }
     .hero { padding-top: 2.5rem; }
   }
+  /* featured project */
+  .featured { margin: 0 0 1rem; }
+  .featured .lead-in { font-size: 1.25rem; max-width: 40rem; margin: 0 0 1rem; }
+  .finding { max-width: 40rem; margin: 0 0 1.4rem; padding-left: 1rem; border-left: 4px solid var(--phase-c); }
+  .finding strong { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 600; }
+  .small-print { font-size: .95rem; color: var(--muted); margin: .9rem 0 0; }
+
+  /* project cards */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1.5rem; }
+  .card { background: var(--panel); border: 1px solid var(--rule); padding: 1.4rem; border-radius: 4px; display: flex; flex-direction: column; }
+  .card h3 { margin: 0 0 .5rem; font-size: 1.3rem; line-height: 1.25; }
+  .card p { margin: 0 0 .8rem; }
+  .card .kind { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 600; font-size: .9rem; color: var(--muted); margin: 0 0 .4rem; }
+  .award { display: inline-block; align-self: flex-start; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 600; font-size: .9rem; padding: .2rem .6rem; border-radius: 3px; margin: 0 0 .7rem; background: var(--paper); border: 1px solid var(--phase-b); color: var(--ink); }
+  .card .links { margin-top: auto; padding-top: .4rem; }
+
+  /* read more */
+  details { margin: .4rem 0 .8rem; }
+  summary { cursor: pointer; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 600; font-size: .98rem; color: var(--link); }
+  summary:focus-visible { outline: 3px solid var(--phase-c); outline-offset: 3px; border-radius: 2px; }
+  details dl { margin: .6rem 0 0; }
+  details dt { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: .98rem; margin-top: .8rem; }
+  details dd { margin: .1rem 0 0; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -117,6 +138,7 @@
   <div class="wrap">
     <a class="brand" href="#top">Maya</a>
     <nav aria-label="Main">
+      <a href="#one-trade">One Trade</a>
       <a href="#projects">Projects</a>
       <a href="#games">Games</a>
       <a href="#about">About</a>
@@ -131,57 +153,131 @@
 
     <div class="hero">
       <h1>Project Portfolio</h1>
-      <p class="lede">I am currently building</p>
       <div class="btns">
-        <a class="btn solid" href="#projects">See my projects</a>
+        <a class="btn solid" href="#one-trade">See my projects</a>
         <a class="btn" href="https://github.com/mayaagge?tab=repositories">View GitHub</a>
       </div>
+    </div>
+
+    <section id="one-trade">
+      <h2>One Trade</h2>
+      <p class="sub">My main project, in progress.</p>
+      <div class="feature featured">
+        <div class="meta">
+          <span class="tag">JavaScript</span><span class="tag">Python</span><span class="tag">yfinance</span><span class="tag">Statistics</span><span class="tag">GitHub Actions</span>
+        </div>
+        <h3>How many bets does your portfolio really make?</h3>
+        <p class="lead-in">A free browser game that teaches diversification with live market data and pretend money. You build a portfolio, guess how many independent bets it makes, then see the answer from real price history.</p>
+        <p class="finding"><strong>First finding:</strong> beginner portfolios carried about one-third as many effective bets as holdings. Different tickers are often the same bet.</p>
+        <div class="btns">
+          <a class="btn solid" href="https://github.com/mayaagge/one-trade">Code, tests and research</a>
+        </div>
+        <p class="small-print">The live game link will appear here at launch.</p>
+        <details>
+          <summary>Read more</summary>
+          <dl>
+            <dt>The question</dt>
+            <dd>Does a beginner who mixes a broad index fund, a tech fund and AI stocks hold far fewer independent bets than holdings? And are AI stocks moving more closely with the market than they did ten years ago?</dd>
+            <dt>How I tested it</dt>
+            <dd>I wrote down the hypotheses, thresholds and random seed and locked them in a tagged git commit before downloading a single price, so the tests couldn't be tuned to the results. Every verdict is published, including the ones that failed.</dd>
+            <dt>What the data showed</dt>
+            <dd>Beginner portfolios carried about one-third as many effective bets as holdings, so concentration is real. But correlation alone explained only part of it; most came from a few volatile holdings carrying most of the risk. And against the equal-weight S&amp;P 500, AI stocks did not move closer to the market (correlation 0.53 to 0.47, with an interval that includes no change). Against the regular S&amp;P 500 they rose sharply, mostly because AI companies are now such a large share of that index.</dd>
+            <dt>What's hard about it</dt>
+            <dd>Getting the statistics right in the browser: the effective-bets measure needs an eigendecomposition I wrote myself, checked against numpy to nine decimal places by hundreds of automated tests. I also caught flaws in my own pre-registered test and fixed them in dated, public amendments before seeing any data.</dd>
+            <dt>What's next</dt>
+            <dd>Prices now refresh every weekday automatically. Next are the game's seven levels, then playtesting with students and a third hypothesis: whether players actually get better at spotting hidden risk.</dd>
+          </dl>
+        </details>
+        <p class="small-print">Educational, not investment advice.</p>
+      </div>
+    </section>
 
     <section id="projects">
       <h2>Projects</h2>
-      <p class="sub">Ordered by relevance.</p>
+      <p class="sub">Research, math modeling and a physics simulation. Tap "Read more" for the details.</p>
+      <div class="card-grid">
 
-      <!-- FINANCE -->
-      <article class="project">
-        <div class="meta">
-          <span class="status building">In progress</span>
-          <span class="tag">Python</span><span class="tag">yfinance</span><span class="tag">Data viz</span>
-        </div>
-        <div class="feature">
-          <h3>Finance dashboard (in progress)</h3>
-          <p>A self-hosted dashboard built around one question, tested with real market data. The first version tracks a weighted tech-sector portfolio and follows NVIDIA's story against the rest of the group, with prices pulled from Yahoo Finance using yfinance. I'm building it over the next two weeks.</p>
-          <dl>
-            <dt>Question I'm asking</dt>
-            <dd>[Finalize this sentence once you pick it. Example: how much of a tech portfolio's return came from NVIDIA alone?]</dd>
-            <dt>What's hard about it</dt>
-            <dd>Lining up price histories, choosing weights I can defend, and presenting the result so someone outside finance understands it in a minute.</dd>
-            <dt>What's next</dt>
-            <dd>Publish the dashboard here and write up what the data showed, including what it could not show.</dd>
-          </dl>
-          <p class="links">Code and live dashboard links will appear here when it's published.</p>
-        </div>
-      </article>
+        <article class="card">
+          <p class="kind">Math modeling contest, video talk</p>
+          <span class="award">Meritorious, SCUDEM 2025 (international)</span>
+          <h3>Projecting the long-term quality of AI tools</h3>
+          <p>A differential equations model of how the quality of AI tools changes over time, built and presented on video in one week for the SIMIODE Challenge Using Differential Equations Modeling.</p>
+          <p class="links"><a href="https://youtu.be/SutvgRN8xf4">Watch our presentation</a></p>
+        </article>
 
-      <!-- MOTOR -->
-      <article class="project">
-        <div class="meta">
-          <span class="status">Complete</span>
-          <span class="tag">Python</span><span class="tag">VPython</span><span class="tag">Physics</span>
-        </div>
-        <div>
+        <article class="card">
+          <p class="kind">Math modeling contest, IMMC 2026</p>
+          <h3>Guardians of Etosha: protecting wildlife at scale</h3>
+          <p>How a national park with limited staff should split its resources across poaching, wildfire, extinction and ecosystem risks, using Etosha National Park in Namibia as the case study.</p>
+          <details>
+            <summary>Read more</summary>
+            <dl>
+              <dt>Why it was hard</dt>
+              <dd>Four very different risks had to share one budget and one workforce, across zones of a park with very different geography.</dd>
+              <dt>What we did</dt>
+              <dd>Built an optimization model for each risk, combined them into one resource mix, allocated it across four zones, and checked it with a staffing plan for 295 people, sensitivity and scenario analysis. Then adapted it to parks in Chile and India.</dd>
+              <dt>What I'd improve</dt>
+              <dd>We weighted the four risks equally because we found no evidence to rank them. I'd test how much the final allocation depends on that choice.</dd>
+            </dl>
+          </details>
+          <p class="links"><a href="papers/IMMC_2026_Team17641.pdf">Read the paper (PDF)</a></p>
+        </article>
+
+        <article class="card">
+          <p class="kind">Math modeling contest, HiMCM 2025</p>
+          <h3>Not-So-Super Bowl: the environmental cost of host cities</h3>
+          <p>A model ranking Super Bowl host cities by environmental impact across transportation, energy, water and waste, extended to Formula 1 race locations. Written with Leah, Kaitlyn and Zach.</p>
+          <details>
+            <summary>Read more</summary>
+            <dl>
+              <dt>Why it was hard</dt>
+              <dd>The four factors come in different units and from patchy public data, so we had to normalize them and decide how much each should count without simply guessing.</dd>
+              <dt>What we did</dt>
+              <dd>Min-max normalization, a correlation check between factors, entropy weighting so the data set the weights, and a sensitivity analysis on those weights. Calibrated on Super Bowl LIX in New Orleans.</dd>
+              <dt>What I'd improve</dt>
+              <dd>With only seven cities, the weights and rankings can shift when a city is added or removed. I'd test that directly, and add uncertainty ranges to the scores.</dd>
+            </dl>
+          </details>
+          <p class="links"><a href="papers/HiMCM_2025_Team17641.pdf">Read the paper (PDF)</a></p>
+        </article>
+
+        <article class="card">
+          <p class="kind">Research paper, Babson College summer 2025</p>
+          <h3>Persuasive appeals in fast-food advertising</h3>
+          <p>Which persuasive techniques fast-food chains use for healthy versus unhealthy menu items, and which ones drive engagement, from 60 coded Instagram and YouTube ads. Written with Dr. Hill Cummings.</p>
+          <details>
+            <summary>Read more</summary>
+            <dl>
+              <dt>What I found</dt>
+              <dd>Healthy-item ads leaned harder on how the food looks. For unhealthy items, build-up and music went with fewer likes per follower, while for healthy items, limited-time offers went with more engagement. I closed by designing an ad that uses those two findings.</dd>
+              <dt>What I did</dt>
+              <dd>Built the coding framework from the advertising literature, collected and coded every ad, and ran chi-square tests, t-tests, correlations and regressions.</dd>
+              <dt>What I'd improve</dt>
+              <dd>Add a second coder to check reliability, use a larger sample, and correct for running many tests at once, since with this many comparisons a few results can look significant by chance.</dd>
+            </dl>
+          </details>
+          <p class="links"><a href="papers/Maya_Agge_Babson_2025.pdf">Read the paper (PDF)</a></p>
+        </article>
+
+        <article class="card">
+          <p class="kind">Physics simulation, Python</p>
           <h3>3-phase AC induction motor simulation</h3>
-          <p>An interactive model of a stator and squirrel-cage rotor. Sliders change voltage, frequency, rotor resistance, load torque, inertia, damping, and rotor size, and live graphs show currents, rotor speed, EMF, and torque as the motor spins up.</p>
-          <dl>
-            <dt>Why it was hard</dt>
-            <dd>The physics chains together: three phase currents make a rotating field, the field induces current in the rotor (Faraday's law), and that current produces torque. Getting slip and net torque to settle correctly took careful time-stepping.</dd>
-            <dt>What I did</dt>
-            <dd>Built the simulation for a physics project, with a 3D view, camera controls, pause and reset, and four live graphs.</dd>
-            <dt>What I'd improve</dt>
-            <dd>Check the simulated torque and slip against a real motor's datasheet, and move the simulation into the browser so anyone can run it without installing Python.</dd>
-          </dl>
-          <p class="links"><a href="play/motor.html"><strong>Run it in your browser</strong></a> <a href="https://github.com/mayaagge/project-3-phase-AC-induction-motor">Code and README</a></p>
-        </div>
-      </article>
+          <p>An interactive model of a stator and squirrel-cage rotor. Sliders change voltage, frequency, rotor resistance, load torque and more, and live graphs show currents, rotor speed, EMF and torque as the motor spins up.</p>
+          <details>
+            <summary>Read more</summary>
+            <dl>
+              <dt>Why it was hard</dt>
+              <dd>The physics chains together: three phase currents make a rotating field, the field induces current in the rotor (Faraday's law), and that current produces torque. Getting slip and net torque to settle correctly took careful time-stepping.</dd>
+              <dt>What I did</dt>
+              <dd>Built the simulation for a physics project, with a 3D view, camera controls, pause and reset, and four live graphs.</dd>
+              <dt>What I'd improve</dt>
+              <dd>Check the simulated torque and slip against a real motor's datasheet.</dd>
+            </dl>
+          </details>
+          <p class="links"><a href="play/motor.html">Run it in your browser</a> <a href="https://github.com/mayaagge/project-3-phase-AC-induction-motor">Code and README</a></p>
+        </article>
+
+      </div>
     </section>
 
     <section id="games">
@@ -228,34 +324,9 @@
 
 <footer>
   <div class="wrap">
-    <a href="https://github.com/mayaagge?tab=repositories">github.com/mayaagge</a> &nbsp;|&nbsp; [your email] &nbsp;|&nbsp; [LinkedIn or Substack link]
+    <a href="https://github.com/mayaagge?tab=repositories">github.com/mayaagge</a> &nbsp;|&nbsp; <a href="mailto:maya.agge@gmail.com">maya.agge@gmail.com</a> &nbsp;|&nbsp; <a href="https://www.linkedin.com/in/mayaagge/">LinkedIn</a>
   </div>
 </footer>
 
-<script>
-  // Three-phase waves in the hero. One slow drift, off when reduced motion is requested.
-  (function () {
-    var paths = [document.getElementById('wa'), document.getElementById('wb'), document.getElementById('wc')];
-    var offsets = [0, 2 * Math.PI / 3, 4 * Math.PI / 3];
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function draw(t) {
-      for (var k = 0; k < 3; k++) {
-        var d = '';
-        for (var x = 0; x <= 1000; x += 8) {
-          var y = 75 - 55 * Math.sin(x / 1000 * 4 * Math.PI - offsets[k] - t);
-          d += (x === 0 ? 'M' : 'L') + x + ' ' + y.toFixed(1);
-        }
-        paths[k].setAttribute('d', d);
-      }
-    }
-    draw(0);
-    if (reduce) return;
-    var start = performance.now();
-    (function loop(now) {
-      draw((now - start) / 1500);
-      requestAnimationFrame(loop);
-    })(start);
-  })();
-</script>
 </body>
 </html>
