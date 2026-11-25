@@ -122,6 +122,7 @@
   .card .kind { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 600; font-size: .9rem; color: var(--muted); margin: 0 0 .4rem; }
   .award { display: inline-block; align-self: flex-start; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 600; font-size: .9rem; padding: .2rem .6rem; border-radius: 3px; margin: 0 0 .7rem; background: var(--paper); border: 1px solid var(--phase-b); color: var(--ink); }
   .card .links { margin-top: auto; padding-top: .4rem; }
+  .meta .tag.ai { border-style: dashed; border-color: var(--muted); }
 
   /* read more */
   details { margin: .4rem 0 .8rem; }
@@ -136,7 +137,7 @@
 
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="#top">Maya</a>
+    <a class="brand" href="#top">Maya Agge</a>
     <nav aria-label="Main">
       <a href="#one-trade">One Trade</a>
       <a href="#projects">Projects</a>
@@ -202,6 +203,7 @@
           <span class="award">Meritorious, SCUDEM 2025 (international)</span>
           <h3>Projecting the long-term quality of AI tools</h3>
           <p>A differential equations model of how the quality of AI tools changes over time, built and presented on video in one week for the SIMIODE Challenge Using Differential Equations Modeling.</p>
+          <div class="meta"><span class="tag">Differential equations</span><span class="tag">Math modeling</span><span class="tag">Video talk</span></div>
           <p class="links"><a href="https://youtu.be/SutvgRN8xf4">Watch our presentation</a></p>
         </article>
 
@@ -209,6 +211,7 @@
           <p class="kind">Math modeling contest, IMMC 2026, team of four</p>
           <h3>Guardians of Etosha: protecting wildlife at scale</h3>
           <p>How a national park with limited staff should split its resources across poaching, wildfire, extinction and ecosystem risks, using Etosha National Park in Namibia as the case study.</p>
+          <div class="meta"><span class="tag">Optimization</span><span class="tag">MATLAB</span><span class="tag">Python</span><span class="tag">Geospatial data</span><span class="tag ai">AI-assisted (ChatGPT)</span></div>
           <details>
             <summary>Read more</summary>
             <dl>
@@ -218,6 +221,8 @@
               <dd>Built an optimization model for each risk, combined them into one resource mix, allocated it across four zones, and checked it with a staffing plan for 295 people, sensitivity and scenario analysis. Then adapted it to parks in Chile and India.</dd>
               <dt>What I'd improve</dt>
               <dd>We weighted the four risks equally because we found no evidence to rank them. I'd test how much the final allocation depends on that choice.</dd>
+              <dt>How we used AI</dt>
+              <dd>ChatGPT helped draft framework ideas and MATLAB code, convert the paper to LaTeX, keep notation consistent across sections, and suggest sources. We checked every equation, number and source against original material, and the final model and conclusions are our own. The paper includes a full AI-use report.</dd>
             </dl>
           </details>
           <p class="links"><a href="papers/IMMC_2026_Team17641.pdf">Read the paper (PDF)</a></p>
@@ -227,6 +232,7 @@
           <p class="kind">Math modeling contest, HiMCM 2025, team of four</p>
           <h3>Not-So-Super Bowl: the environmental cost of host cities</h3>
           <p>A model ranking Super Bowl host cities by environmental impact across transportation, energy, water and waste, extended to Formula 1 race locations.</p>
+          <div class="meta"><span class="tag">Python</span><span class="tag">pandas</span><span class="tag">Math modeling</span><span class="tag">Sensitivity analysis</span><span class="tag ai">AI for source finding only</span></div>
           <details>
             <summary>Read more</summary>
             <dl>
@@ -236,6 +242,8 @@
               <dd>Min-max normalization, a correlation check between factors, entropy weighting so the data set the weights, and a sensitivity analysis on those weights. Calibrated on Super Bowl LIX in New Orleans.</dd>
               <dt>What I'd improve</dt>
               <dd>With only seven cities, the weights and rankings can shift when a city is added or removed. I'd test that directly, and add uncertainty ranges to the scores.</dd>
+              <dt>How we used AI</dt>
+              <dd>Only to help find sources, which we then evaluated ourselves. The model and the math are our own.</dd>
             </dl>
           </details>
           <p class="links"><a href="papers/HiMCM_2025_Team17641.pdf">Read the paper (PDF)</a></p>
@@ -245,6 +253,7 @@
           <p class="kind">Independent research, Babson College summer 2025</p>
           <h3>Persuasive appeals in fast-food advertising</h3>
           <p>Which persuasive techniques fast-food chains use for healthy versus unhealthy menu items, and which ones drive engagement, from 60 coded Instagram and YouTube ads. Mentored by Dr. Hill Cummings.</p>
+          <div class="meta"><span class="tag">Content analysis</span><span class="tag">Statistics</span><span class="tag">Regression</span><span class="tag">Marketing</span><span class="tag ai">AI-assisted analysis (Julius AI)</span></div>
           <details>
             <summary>Read more</summary>
             <dl>
@@ -254,15 +263,18 @@
               <dd>Built the coding framework from the advertising literature, collected and coded every ad, and ran chi-square tests, t-tests, correlations and regressions.</dd>
               <dt>What I'd improve</dt>
               <dd>Add a second coder to check reliability, use a larger sample, and correct for running many tests at once, since with this many comparisons a few results can look significant by chance.</dd>
+              <dt>How I used AI</dt>
+              <dd>Julius AI helped with data exploration, statistical testing and spotting patterns. I designed the study, collected and coded every ad myself, and interpreted the results.</dd>
             </dl>
           </details>
           <p class="links"><a href="papers/Maya_Agge_Babson_2025.pdf">Read the paper (PDF)</a></p>
         </article>
 
         <article class="card">
-          <p class="kind">Physics simulation, Python, team of two</p>
+          <p class="kind">Physics simulation, team of two</p>
           <h3>3-phase AC induction motor simulation</h3>
           <p>An interactive model of a stator and squirrel-cage rotor. Sliders change voltage, frequency, rotor resistance, load torque and more, and live graphs show currents, rotor speed, EMF and torque as the motor spins up.</p>
+          <div class="meta"><span class="tag">Python</span><span class="tag">VPython</span><span class="tag">Physics</span></div>
           <details>
             <summary>Read more</summary>
             <dl>
@@ -287,6 +299,7 @@
         <article class="game">
           <h3>Set</h3>
           <p>The pattern-matching card game, written in NetLogo as a two-person team project. Find three cards where each feature is all the same or all different. Five correct sets wins, and you get 15 seconds per round.</p>
+          <div class="meta"><span class="tag">NetLogo</span><span class="tag">JavaScript</span></div>
           <a class="play" href="play/set.html">Play in your browser</a><br>
           <a href="https://github.com/mayaagge/final-set-group">Original NetLogo code</a>
         </article>
@@ -294,6 +307,7 @@
           <img src="play/assets/bloons/STARTSCREEN.png" alt="Bloons TD title screen" width="336" height="224" style="width:100%;height:auto;margin:0 0 .7rem;border-radius:3px">
           <h3>Bloons Tower Defense</h3>
           <p>A tower defense game built in Processing by a team of three, with five monkey types, five balloon types, and ten rounds. The repo has a design document, a UML diagram, and 233 commits.</p>
+          <div class="meta"><span class="tag">Processing</span><span class="tag">Python</span><span class="tag">JavaScript</span></div>
           <a class="play" href="play/bloons.html">Play in your browser</a><br>
           <a href="https://github.com/mayaagge/final-bloons-tower-defense-group/blob/main/Design%20Doc.pdf">Design document</a><br>
           <a href="https://github.com/mayaagge/final-bloons-tower-defense-group">Original Processing code</a>
