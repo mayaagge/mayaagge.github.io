@@ -144,7 +144,7 @@
       <a href="#games">Games</a>
       <a href="#about">About</a>
       <a href="https://github.com/mayaagge?tab=repositories">GitHub</a>
-      <a href="YOUR_CV.pdf">CV</a>
+      <a href="mailto:maya.agge@gmail.com">Contact</a>
     </nav>
   </div>
 </header>
@@ -162,31 +162,36 @@
 
     <section id="one-trade">
       <h2>One Trade</h2>
-      <p class="sub">My main project, in progress.</p>
+      <p class="sub">My main project. Live since 26 November 2026.</p>
       <div class="feature featured">
         <div class="meta">
-          <span class="tag">JavaScript</span><span class="tag">Python</span><span class="tag">yfinance</span><span class="tag">Statistics</span><span class="tag">GitHub Actions</span>
+          <span class="status">Live, with prices refreshed every weekday</span>
+          <span class="tag">JavaScript</span><span class="tag">Python</span><span class="tag">yfinance</span><span class="tag">Statistics</span><span class="tag">GitHub Actions</span><span class="tag">Cloudflare Workers</span><span class="tag ai">AI-assisted (Claude Code)</span>
         </div>
         <h3>How many bets does your portfolio really make?</h3>
-        <p class="lead-in">A free browser game that teaches diversification with live market data and pretend money. You build a portfolio, guess how many independent bets it makes, then see the answer from real price history.</p>
-        <p class="finding"><strong>First finding:</strong> beginner portfolios carried about one-third as many effective bets as holdings. Different tickers are often the same bet.</p>
+        <p class="lead-in">A free browser game that teaches diversification with live market data and pretend money. You build a portfolio with $10,000, guess how many independent bets it makes, then see the answer worked out from real price history. No sign-up, and a round takes a minute or two.</p>
+        <p class="finding"><strong>What I found:</strong> my own hypotheses mostly didn't hold, and I published that. Once I separated correlation from uneven weighting, correlation cut beginner portfolios' effective bets by only about a quarter, short of the bar I set in advance. And AI stocks did not move closer to the broad market over ten years.</p>
         <div class="btns">
-          <a class="btn solid" href="https://github.com/mayaagge/one-trade">Code, tests and research</a>
+          <a class="btn solid" href="https://mayaagge.github.io/one-trade/">Play One Trade</a>
+          <a class="btn" href="https://github.com/mayaagge/one-trade">Code, tests and research</a>
         </div>
-        <p class="small-print">The live game link will appear here at launch.</p>
         <details>
           <summary>Read more</summary>
           <dl>
+            <dt>What you can play</dt>
+            <dd>Seven levels, from spotting two holdings that move together to guessing the bets in mystery portfolios. There's also a Sandbox with every measure, a mode for checking your real holdings (nothing is stored or sent), crash replays of 2020, 2022 and the January 2025 AI selloff, a daily "Same bet?" puzzle and a weekly challenge. Returns never earn points.</dd>
             <dt>The question</dt>
             <dd>Does a beginner who mixes a broad index fund, a tech fund and AI stocks hold far fewer independent bets than holdings? And are AI stocks moving more closely with the market than they did ten years ago?</dd>
             <dt>How I tested it</dt>
-            <dd>I wrote down the hypotheses, thresholds and random seed and locked them in a tagged git commit before downloading a single price, so the tests couldn't be tuned to the results. Every verdict is published, including the ones that failed.</dd>
+            <dd>I wrote down the hypotheses, thresholds and random seed and locked them in tagged git commits before downloading a single price, so the tests couldn't be tuned to the results. Every verdict is published, including the ones that went against me.</dd>
             <dt>What the data showed</dt>
-            <dd>Beginner portfolios carried about one-third as many effective bets as holdings, so concentration is real. But correlation alone explained only part of it; most came from a few volatile holdings carrying most of the risk. And against the equal-weight S&amp;P 500, AI stocks did not move closer to the market (correlation 0.53 to 0.47, with an interval that includes no change). Against the regular S&amp;P 500 they rose sharply, mostly because AI companies are now such a large share of that index.</dd>
-            <dt>What's hard about it</dt>
-            <dd>Getting the statistics right in the browser: the effective-bets measure needs an eigendecomposition I wrote myself, checked against numpy to nine decimal places by hundreds of automated tests. I also caught flaws in my own pre-registered test and fixed them in dated, public amendments before seeing any data.</dd>
+            <dd>On the test I first registered, beginner portfolios carried about one-third as many effective bets as holdings, which looked like strong support. But I found that holdings with no correlation at all also passed that test, because uneven weights alone lower the score. So the verdict comes from a cleaner test that measures correlation only, and there the claim was not supported (0.77 against a bar of 0.60). For AI stocks, correlation with the equal-weight S&amp;P 500 fell from 0.53 to 0.47, and the 90% interval includes no change. Dropping any one of the 13 AI stocks changes neither verdict.</dd>
+            <dt>What was hard</dt>
+            <dd>Getting the statistics right in the browser. The effective-bets measure needs an eigendecomposition, which I check against numpy to nine decimal places; the project has about 1,200 automated tests that run on every push. Harder still was admitting my first test was flawed, and fixing it in dated, public amendments before seeing any data.</dd>
+            <dt>How I used AI</dt>
+            <dd>I built it with Claude Code as a pair programmer. I wrote the spec, chose the research questions, method and thresholds, and reviewed and tested every change. A public build log records what was built in each session and what I decided or corrected.</dd>
             <dt>What's next</dt>
-            <dd>Prices now refresh every weekday automatically. Next are the game's seven levels, then playtesting with students and a third hypothesis: whether players actually get better at spotting hidden risk.</dd>
+            <dd>Playtesting with students who have never seen it. A third hypothesis, whether players get better at spotting hidden risk, collects anonymous guesses until 25 January 2027. After that, a classroom link and lesson plan for instructors.</dd>
           </dl>
         </details>
         <p class="small-print">Educational, not investment advice.</p>
@@ -319,8 +324,9 @@
       <h2>About</h2>
       <div class="about">
         <div>
-          <p>[Two or three sentences: who you are, where you study, and what you're curious about. Mention that you like picking a question, forming a hypothesis, and letting the data answer.]</p>
-          <p><a href="YOUR_CV.pdf">Download my CV</a></p>
+          <p>I'm a first-year at the University of Chicago, interested in where markets, data and modeling meet. I like to pick a question, write down what I expect before I look, and let the data answer, even when it tells me I was wrong.</p>
+          <p>That habit runs through everything on this page, from math modeling contests and a physics simulation to One Trade, a market game I built, launched and published my pre-registered results for.</p>
+          <p>I'm looking for summer internships in finance, data and technology. For my CV, or to talk about any of these projects, <a href="mailto:maya.agge@gmail.com">email me</a> or find me on <a href="https://www.linkedin.com/in/mayaagge/">LinkedIn</a>.</p>
         </div>
         <div>
           <p>Languages and tools</p>
